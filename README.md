@@ -1,20 +1,21 @@
-# Simple Paste (No storage)
+# Simple Paste (Personal, single link)
 
-This is a super-simple pastebin-like app with no backend. Your text is compressed and encoded into the URL hash, so nothing is stored on any server. Share the link to view the text on any device.
+A super-simple paste app for personal use. There is only one page/link. Your text is saved locally in your browser (localStorage). No backend. No accounts.
 
 ## Files
 - index.html — single-file app with inline styles and JS.
 
 ## How to use
-1. Open the file directly in a browser:
+1. Open the file in a browser:
    - macOS: open simple-paste/index.html
-   - Or drag-drop it into your browser window.
+   - Or serve locally and visit http://localhost:8080 (see below)
 2. Type or paste your text.
-3. Click “Create/refresh link” to generate a shareable URL.
-4. Click “Copy link” and share it. The recipient opens the link to view and copy the text.
+3. Click “Save” to store it locally in this browser.
+4. Click “Reload” to load whatever was last saved locally.
+5. Click “Copy” to copy the current text to your clipboard.
 
 ## Local server (optional)
-Running via a local server avoids some browser clipboard security limitations:
+Running via a local server avoids some clipboard security limitations:
 
 - Python 3
   python3 -m http.server 8080 -d simple-paste
@@ -24,6 +25,6 @@ Running via a local server avoids some browser clipboard security limitations:
   npx serve simple-paste -l 8080
 
 ## Notes
-- Privacy: The text sits after the # in the URL, which is never sent to the server, even when the page loads.
-- Limits: Very large texts make very long links. Many browsers can handle large URLs, but some apps may truncate them.
-- No auth, no storage: exactly as requested.
+- Storage is local to the browser/device. It won’t sync across devices or when using private mode.
+- Clearing site data or switching browsers/devices will remove the saved text.
+- Buttons: Reload, Save, Copy.
