@@ -82,7 +82,7 @@
 <body>
   <header>
     <h1>Simple Paste</h1>
-    <p>Single fixed link for personal use. Your text is saved locally in this browser (localStorage). Buttons: Save, Reload, Copy.</p>
+    <p>Single fixed link for personal use. Click Save to store the current text remotely; Reload fetches the latest saved text; Copy copies to your clipboard.</p>
   </header>
   <main>
     <section class="panel">
@@ -96,7 +96,7 @@
     </section>
   </main>
   <footer>
-    Stored only on this device in your browser storage. Clearing site data or using another browser/device will not include your saved text.
+    Saved remotely when you click Save. Anyone opening this link will see the latest saved text. Note: Requires server storage (e.g., Vercel KV) when deployed.
   </footer>
 
   <script>
@@ -108,29 +108,34 @@
       const reloadBtn = $('reloadBtn');
       const copyTextBtn = $('copyTextBtn');
 
-      const STORAGE_KEY = 'simple-paste:text';
-
       function setStatus(msg, cls) {
         statusEl.textContent = msg || '';
         statusEl.className = 'hint ' + (cls || '');
       }
 
-      function loadFromStorage() {
+      async function reloadFromServer() {
         try {
-          const v = localStorage.getItem(STORAGE_KEY) || '';
-          editor.value = v;
-          setStatus('Reloaded from local storage.', '');
+          const res = await fetch('/api/paste');
+          if (!res.ok) throw new Error('bad status');
+          const data = await res.json();
+          editor.value = typeof data.text === 'string' ? data.text : '';
+          setStatus('Reloaded latest saved text.', '');
         } catch (e) {
-          setStatus('Unable to read local storage.', 'warn');
+          setStatus('Unable to reload from server.', 'warn');
         }
       }
 
-      function saveToStorage() {
+      async function saveToServer() {
         try {
-          localStorage.setItem(STORAGE_KEY, editor.value);
-          setStatus('Saved locally.', 'ok');
+          const res = await fetch('/api/paste', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: editor.value })
+          });
+          if (!res.ok) throw new Error('bad status');
+          setStatus('Saved to server.', 'ok');
         } catch (e) {
-          setStatus('Unable to save. Is storage full or blocked?', 'warn');
+          setStatus('Unable to save to server.', 'warn');
         }
       }
 
@@ -156,15 +161,15 @@
       }
 
       // Events
-      saveBtn.addEventListener('click', saveToStorage);
-      reloadBtn.addEventListener('click', loadFromStorage);
+      saveBtn.addEventListener('click', saveToServer);
+      reloadBtn.addEventListener('click', reloadFromServer);
       copyTextBtn.addEventListener('click', async () => {
         const ok = await copyToClipboard(editor.value);
         setStatus(ok ? 'Text copied to clipboard.' : 'Unable to copy text', ok ? 'ok' : 'warn');
       });
 
-      // Init: load whatever is stored already
-      loadFromStorage();
+      // Init: fetch latest from server
+      reloadFromServer();
     })();
   </script>
 </body>
